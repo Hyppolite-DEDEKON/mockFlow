@@ -39,6 +39,7 @@ export function getFinalScale(
       samsung: 1.02,
       pixel: 1.03,
       ipad: 0.82,
+      desktop: 0.52,
     },
     "16:9": {
       iphone15: 0.68,
@@ -46,6 +47,7 @@ export function getFinalScale(
       samsung: 0.66,
       pixel: 0.67,
       ipad: 0.58,
+      desktop: 0.88,
     },
     "1:1": {
       iphone15: 0.82,
@@ -53,6 +55,7 @@ export function getFinalScale(
       samsung: 0.8,
       pixel: 0.81,
       ipad: 0.68,
+      desktop: 0.62,
     },
   };
   return scales[aspectRatio][deviceId];

@@ -319,6 +319,20 @@ function drawScreenGlare(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
       ctx.fillRect(screen.x, screen.y, screen.width, screen.height);
       break;
     }
+    case "desktop": {
+      const glare = ctx.createLinearGradient(
+        screen.x,
+        screen.y,
+        screen.x + screen.width * 0.6,
+        screen.y + screen.height
+      );
+      glare.addColorStop(0, "rgba(255,255,255,0.06)");
+      glare.addColorStop(0.4, "transparent");
+      glare.addColorStop(1, "transparent");
+      ctx.fillStyle = glare;
+      ctx.fillRect(screen.x, screen.y, screen.width, screen.height);
+      break;
+    }
     case "iphone11": {
       const glare = ctx.createLinearGradient(
         screen.x,
@@ -398,6 +412,9 @@ function drawDeviceOverlays(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
       ctx.fill();
       break;
     }
+    case "desktop":
+      drawMacBookNotch(ctx, spec);
+      break;
   }
 }
 
@@ -453,6 +470,74 @@ function drawFloorShadow(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
   ctx.restore();
 }
 
+function drawMacBookNotch(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
+  const screen = getScreenRect(spec);
+  const notchW = 108;
+  const notchH = 22;
+  const x = spec.width / 2 - notchW / 2;
+  const y = screen.y - 2;
+
+  drawNotchPath(ctx, x, y, notchW, notchH, 11);
+  ctx.fillStyle = "#000000";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.05)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(x + notchW / 2, y + notchH - 6, 3, 0, Math.PI * 2);
+  ctx.fillStyle = "#0d1117";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.1)";
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+}
+
+function drawDesktopDevice(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
+  const lidH = spec.height - (spec.keyboardHeight ?? 74);
+  const r = spec.frameRadius;
+  const screen = getScreenRect(spec);
+
+  roundRect(ctx, 0, 0, spec.width, lidH, r);
+  ctx.fillStyle = createFrameGradient(ctx, spec);
+  ctx.fill();
+  ctx.strokeStyle = spec.frameBorder;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.save();
+  roundRect(ctx, 0, 0, spec.width, lidH, r);
+  ctx.clip();
+  drawTopShine(ctx, spec);
+  ctx.restore();
+
+  const baseGrad = ctx.createLinearGradient(0, lidH, 0, spec.height);
+  baseGrad.addColorStop(0, "#b0b8c4");
+  baseGrad.addColorStop(0.55, "#949eb0");
+  baseGrad.addColorStop(1, "#8892a4");
+  roundRect(ctx, 0, lidH - 1, spec.width, spec.height - lidH + 1, r);
+  ctx.fillStyle = baseGrad;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.2)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = "#5b6370";
+  ctx.fillRect(spec.width * 0.06, lidH - 1, spec.width * 0.88, 3);
+
+  roundRect(ctx, screen.x - 2, screen.y - 2, screen.width + 4, screen.height + 4, screen.radius + 2);
+  ctx.fillStyle = "#0a0a0c";
+  ctx.fill();
+
+  const tpW = spec.width * 0.38;
+  roundRect(ctx, (spec.width - tpW) / 2, lidH + 14, tpW, 42, 8);
+  ctx.fillStyle = "rgba(142,152,168,0.45)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
 function drawDeviceBody(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
   roundRect(ctx, 0, 0, spec.width, spec.height, spec.frameRadius);
   ctx.fillStyle = createFrameGradient(ctx, spec);
@@ -505,7 +590,11 @@ export function drawMockupFrame(
   ctx.rotate((pose.rotateX * Math.PI) / 180);
   ctx.translate(-spec.width / 2, -spec.height / 2);
 
-  drawDeviceBody(ctx, spec);
+  if (spec.id === "desktop") {
+    drawDesktopDevice(ctx, spec);
+  } else {
+    drawDeviceBody(ctx, spec);
+  }
   drawVideoInScreen(ctx, spec, video);
   drawScreenGlare(ctx, spec);
   drawDeviceOverlays(ctx, spec);

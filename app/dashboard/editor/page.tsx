@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Loader2,
   X,
+  Monitor,
 } from "lucide-react";
 import BackgroundLayer from "../components/BackgroundLayer";
 import Scene2D from "../components/Scene2D";
@@ -30,6 +31,7 @@ import {
   type BackgroundCategory,
   isLightBackground,
 } from "../lib/backgrounds";
+import { applyTemplateToEditor, getTemplate } from "../lib/templates";
 
 type ExportFormat = "webm" | "mp4";
 
@@ -52,6 +54,7 @@ export default function EditorPage() {
   );
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+  const [loadedTemplateName, setLoadedTemplateName] = useState<string | null>(null);
 
   const cropRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -119,6 +122,25 @@ export default function EditorPage() {
   }, [stopPlayback, totalDuration, videoUrl]);
 
   useEffect(() => () => stopPlayback(), [stopPlayback]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const templateId = params.get("template");
+    if (!templateId) return;
+
+    const template = getTemplate(templateId);
+    if (!template) return;
+
+    const applied = applyTemplateToEditor(template);
+    setDevice(applied.device);
+    setAnimation(applied.animation);
+    setAspectRatio(applied.aspectRatio);
+    setBackgroundId(applied.backgroundId);
+    setBgCategory(applied.bgCategory);
+    setLoadedTemplateName(template.name);
+    setPlayhead(0);
+    stopPlayback();
+  }, [stopPlayback]);
 
   const handleCancelExport = useCallback(() => {
     exportAbortRef.current?.abort();
@@ -241,12 +263,15 @@ export default function EditorPage() {
                 <h3 className="text-sm font-semibold text-white mb-3">Device Model</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: "iphone15", label: "iPhone 15 Pro" },
-                    { id: "iphone11", label: "iPhone 11" },
-                    { id: "samsung", label: "Samsung S24" },
-                    { id: "pixel", label: "Pixel 8 Pro" },
-                    { id: "ipad", label: "iPad Mini" },
-                  ].map((d) => (
+                    { id: "iphone15", label: "iPhone 15 Pro", icon: Smartphone },
+                    { id: "iphone11", label: "iPhone 11", icon: Smartphone },
+                    { id: "samsung", label: "Samsung S24", icon: Smartphone },
+                    { id: "pixel", label: "Pixel 8 Pro", icon: Smartphone },
+                    { id: "ipad", label: "iPad Mini", icon: Smartphone },
+                    { id: "desktop", label: "MacBook Pro", icon: Monitor },
+                  ].map((d) => {
+                    const Icon = d.icon;
+                    return (
                     <button
                       key={d.id}
                       onClick={() => {
@@ -257,12 +282,13 @@ export default function EditorPage() {
                         device === d.id
                           ? "bg-[#3B7BFF]/10 border-[#3B7BFF]/50 text-white"
                           : "bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/5"
-                      }`}
+                      } ${d.id === "desktop" ? "col-span-2" : ""}`}
                     >
-                      <Smartphone size={14} className={device === d.id ? "text-[#3B7BFF]" : ""} />
+                      <Icon size={14} className={device === d.id ? "text-[#3B7BFF]" : ""} />
                       {d.label}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -343,6 +369,25 @@ export default function EditorPage() {
 
       {/* MIDDLE COLUMN: Crop Preview */}
       <div className="flex-1 flex flex-col relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-[#030408]">
+        {loadedTemplateName && (
+          <div className="absolute top-16 left-4 right-4 z-20 flex justify-center pointer-events-none">
+            <div className="pointer-events-auto flex items-center gap-3 bg-[#3B7BFF]/15 border border-[#3B7BFF]/30 backdrop-blur-md rounded-lg px-4 py-2 max-w-md">
+              <Sparkles size={14} className="text-[#93c5fd] shrink-0" />
+              <p className="text-xs text-white/90 flex-1">
+                Template <span className="font-semibold text-white">{loadedTemplateName}</span>
+                {" "}— uploade ta capture pour commencer.
+              </p>
+              <button
+                type="button"
+                onClick={() => setLoadedTemplateName(null)}
+                className="text-white/40 hover:text-white transition-colors shrink-0"
+                aria-label="Fermer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        )}
         <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
           <div className="pointer-events-auto bg-black/50 backdrop-blur-md border border-white/10 rounded-lg px-3 py-1.5 flex items-center gap-2">
             <span className="text-[10px] text-white/50 uppercase tracking-wider">Crop</span>

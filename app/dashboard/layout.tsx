@@ -8,9 +8,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[#06070A] text-[#F0F2F5] font-sans selection:bg-[#3B7BFF]/30">
       <DashboardBackground />
       <Sidebar />
-      <div className="pl-[220px] flex flex-col min-h-screen">
+      <div className="pl-[220px] flex flex-col min-h-screen bg-[#06070A] overflow-x-clip isolate">
         <Topbar />
-        <main className="flex-1 p-8 overflow-x-hidden">
+        <main className="flex-1 p-8 overflow-x-clip">
           {children}
         </main>
       </div>

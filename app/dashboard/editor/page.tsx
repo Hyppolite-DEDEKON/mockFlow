@@ -58,7 +58,7 @@ export default function EditorPage() {
 
   const cropRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const timingVideoRef = useRef<HTMLVideoElement | null>(null);
   const playIntervalRef = useRef<number | null>(null);
   const exportAbortRef = useRef<AbortController | null>(null);
 
@@ -76,15 +76,30 @@ export default function EditorPage() {
   };
 
   useEffect(() => {
-    const vid = previewVideoRef.current;
-    if (!vid || !videoUrl) {
+    if (!videoUrl) {
+      timingVideoRef.current = null;
       setVideoDuration(0);
       return;
     }
+
+    const vid = document.createElement("video");
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.preload = "auto";
+    vid.src = videoUrl;
+    timingVideoRef.current = vid;
+
     const onMeta = () => setVideoDuration(vid.duration || 0);
     vid.addEventListener("loadedmetadata", onMeta);
     if (vid.readyState >= 1) onMeta();
-    return () => vid.removeEventListener("loadedmetadata", onMeta);
+
+    return () => {
+      vid.removeEventListener("loadedmetadata", onMeta);
+      vid.pause();
+      vid.removeAttribute("src");
+      vid.load();
+      timingVideoRef.current = null;
+    };
   }, [videoUrl]);
 
   const stopPlayback = useCallback(() => {
@@ -92,7 +107,7 @@ export default function EditorPage() {
       cancelAnimationFrame(playIntervalRef.current);
       playIntervalRef.current = null;
     }
-    previewVideoRef.current?.pause();
+    timingVideoRef.current?.pause();
     setIsPlaying(false);
   }, []);
 
@@ -100,7 +115,7 @@ export default function EditorPage() {
     stopPlayback();
     setPlayhead(0);
 
-    const vid = previewVideoRef.current;
+    const vid = timingVideoRef.current;
     if (vid && videoUrl) {
       vid.currentTime = 0;
     }
@@ -203,17 +218,6 @@ export default function EditorPage() {
 
   return (
     <div className="flex h-[calc(100vh-68px-64px)] gap-6 animate-in fade-in duration-500">
-      {videoUrl && (
-        <video
-          ref={previewVideoRef}
-          src={videoUrl}
-          className="fixed w-px h-px opacity-0 pointer-events-none"
-          muted
-          playsInline
-          preload="auto"
-          aria-hidden
-        />
-      )}
       {/* LEFT COLUMN */}
       <div className="w-[320px] flex flex-col bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden shadow-xl">
         <div className="flex border-b border-white/5">

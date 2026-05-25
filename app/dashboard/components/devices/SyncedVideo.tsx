@@ -7,9 +7,17 @@ interface SyncedVideoProps {
   videoUrl: string;
   videoTime?: number;
   videoPlaying?: boolean;
+  objectFit?: "cover" | "contain";
+  objectPosition?: "center" | "top";
 }
 
-export default function SyncedVideo({ videoUrl, videoTime, videoPlaying }: SyncedVideoProps) {
+export default function SyncedVideo({
+  videoUrl,
+  videoTime,
+  videoPlaying,
+  objectFit = "cover",
+  objectPosition = "center",
+}: SyncedVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -33,24 +41,28 @@ export default function SyncedVideo({ videoUrl, videoTime, videoPlaying }: Synce
       muted
       playsInline
       preload="auto"
-      className="w-full h-full object-cover"
+      className={`w-full h-full ${objectFit === "contain" ? "object-contain" : "object-cover"} ${
+        objectPosition === "top" ? "object-top" : "object-center"
+      }`}
     />
   );
 }
 
 interface PlaceholderScreenProps {
-  variant?: "phone" | "tablet" | "samsung" | "desktop";
+  variant?: "phone" | "tablet" | "samsung" | "desktop" | "pc";
 }
 
 export function PlaceholderScreen({ variant = "phone" }: PlaceholderScreenProps) {
   const isTablet = variant === "tablet";
   const isSamsung = variant === "samsung";
   const isDesktop = variant === "desktop";
+  const isPC = variant === "pc";
+  const isWide = isDesktop || isPC;
 
   return (
     <div
       className={`w-full h-full relative ${
-        isDesktop
+        isWide
           ? "bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950"
           : isSamsung
             ? "bg-gradient-to-b from-slate-900 to-slate-800"
@@ -59,8 +71,8 @@ export function PlaceholderScreen({ variant = "phone" }: PlaceholderScreenProps)
     >
       <div
         className={`absolute bg-white/10 animate-pulse ${
-          isDesktop
-            ? "top-8 left-8 right-8 h-24 rounded-lg"
+          isWide
+            ? "top-6 left-6 right-6 h-20 rounded-md"
             : isTablet
               ? "top-16 left-6 right-6 h-40 rounded-xl"
               : isSamsung
@@ -70,8 +82,8 @@ export function PlaceholderScreen({ variant = "phone" }: PlaceholderScreenProps)
       />
       <div
         className={`absolute bg-white/10 animate-pulse ${
-          isDesktop
-            ? "top-36 left-8 w-[45%] h-16 rounded-lg"
+          isWide
+            ? "top-32 left-6 w-[42%] h-14 rounded-md"
             : isTablet
               ? "top-64 left-6 right-6 h-20 rounded-xl"
               : isSamsung
@@ -83,12 +95,12 @@ export function PlaceholderScreen({ variant = "phone" }: PlaceholderScreenProps)
       <div className="absolute inset-0 flex items-center justify-center bg-black/20">
         <div
           className={`rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 ${
-            isDesktop ? "w-14 h-14" : isTablet ? "w-16 h-16" : "w-12 h-12"
+            isWide ? "w-14 h-14" : isTablet ? "w-16 h-16" : "w-12 h-12"
           }`}
         >
           <Play
-            size={isDesktop ? 24 : isTablet ? 28 : 20}
-            className={`text-white ${isDesktop || isTablet ? "ml-1.5" : "ml-1"}`}
+            size={isWide ? 24 : isTablet ? 28 : 20}
+            className={`text-white ${isWide || isTablet ? "ml-1.5" : "ml-1"}`}
           />
         </div>
       </div>

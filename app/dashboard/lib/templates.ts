@@ -49,6 +49,7 @@ export const DEVICE_LABELS: Record<DeviceId, string> = {
   pixel: "Pixel",
   ipad: "iPad",
   desktop: "MacBook Pro",
+  pc: "PC Monitor",
 };
 
 export const ASPECT_LABELS: Record<AspectRatio, string> = {
@@ -156,6 +157,19 @@ export const MOCKFLOW_TEMPLATES: MockflowTemplate[] = [
     platform: "general",
     style: "dark",
     tags: ["portrait", "android", "dark"],
+  },
+  {
+    id: "pc-windows",
+    name: "PC Windows",
+    description: "Écran bureau avec pied — parfait pour tutoriels Windows et apps web.",
+    device: "pc",
+    backgroundId: "slate-studio",
+    animation: "reveal",
+    aspectRatio: "16:9",
+    platform: "youtube",
+    style: "dark",
+    featured: true,
+    tags: ["landscape", "pc", "windows", "monitor"],
   },
   {
     id: "desktop-saas",

@@ -333,6 +333,20 @@ function drawScreenGlare(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
       ctx.fillRect(screen.x, screen.y, screen.width, screen.height);
       break;
     }
+    case "pc": {
+      const glare = ctx.createLinearGradient(
+        screen.x,
+        screen.y,
+        screen.x + screen.width,
+        screen.y + screen.height * 0.5
+      );
+      glare.addColorStop(0, "rgba(255,255,255,0.05)");
+      glare.addColorStop(0.35, "transparent");
+      glare.addColorStop(1, "transparent");
+      ctx.fillStyle = glare;
+      ctx.fillRect(screen.x, screen.y, screen.width, screen.height);
+      break;
+    }
     case "iphone11": {
       const glare = ctx.createLinearGradient(
         screen.x,
@@ -413,8 +427,19 @@ function drawDeviceOverlays(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
       break;
     }
     case "desktop":
-      drawMacBookNotch(ctx, spec);
       break;
+    case "pc": {
+      const cx = spec.width / 2;
+      const cy = screen.y - 4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+      ctx.fillStyle = "#0a0a0c";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      break;
+    }
   }
 }
 
@@ -433,11 +458,14 @@ function drawVideoInScreen(
     const vw = video.videoWidth;
     const vh = video.videoHeight;
     if (vw && vh) {
-      const scale = Math.max(screen.width / vw, screen.height / vh);
+      const isWideScreen = spec.id === "desktop" || spec.id === "pc";
+      const scale = isWideScreen
+        ? Math.min(screen.width / vw, screen.height / vh)
+        : Math.max(screen.width / vw, screen.height / vh);
       const dw = vw * scale;
       const dh = vh * scale;
       const dx = screen.x + (screen.width - dw) / 2;
-      const dy = screen.y + (screen.height - dh) / 2;
+      const dy = isWideScreen ? screen.y : screen.y + (screen.height - dh) / 2;
       ctx.drawImage(video, dx, dy, dw, dh);
     }
   } else {
@@ -470,29 +498,6 @@ function drawFloorShadow(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
   ctx.restore();
 }
 
-function drawMacBookNotch(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
-  const screen = getScreenRect(spec);
-  const notchW = 108;
-  const notchH = 22;
-  const x = spec.width / 2 - notchW / 2;
-  const y = screen.y - 2;
-
-  drawNotchPath(ctx, x, y, notchW, notchH, 11);
-  ctx.fillStyle = "#000000";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.05)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(x + notchW / 2, y + notchH - 6, 3, 0, Math.PI * 2);
-  ctx.fillStyle = "#0d1117";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.1)";
-  ctx.lineWidth = 0.5;
-  ctx.stroke();
-}
-
 function drawDesktopDevice(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
   const lidH = spec.height - (spec.keyboardHeight ?? 74);
   const r = spec.frameRadius;
@@ -510,6 +515,16 @@ function drawDesktopDevice(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
   ctx.clip();
   drawTopShine(ctx, spec);
   ctx.restore();
+
+  // Small notch on aluminum (above screen)
+  const notchW = 96;
+  const notchX = (spec.width - notchW) / 2;
+  roundRect(ctx, notchX, 5, notchW, 10, 5);
+  ctx.fillStyle = "#a3aec0";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.2)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
 
   const baseGrad = ctx.createLinearGradient(0, lidH, 0, spec.height);
   baseGrad.addColorStop(0, "#b0b8c4");
@@ -534,6 +549,57 @@ function drawDesktopDevice(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
   ctx.fillStyle = "rgba(142,152,168,0.45)";
   ctx.fill();
   ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function drawPCDevice(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
+  const monitorH = spec.height - (spec.keyboardHeight ?? 96);
+  const r = spec.frameRadius;
+  const screen = getScreenRect(spec);
+
+  const panelGrad = ctx.createLinearGradient(0, 0, 0, monitorH);
+  panelGrad.addColorStop(0, "#2d2d30");
+  panelGrad.addColorStop(1, "#1a1a1c");
+  roundRect(ctx, 0, 0, spec.width, monitorH, r);
+  ctx.fillStyle = panelGrad;
+  ctx.fill();
+  ctx.strokeStyle = spec.frameBorder;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  roundRect(ctx, screen.x - 2, screen.y - 2, screen.width + 4, screen.height + 4, screen.radius + 2);
+  ctx.fillStyle = "#000000";
+  ctx.fill();
+
+  // Chin indicator
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  roundRect(ctx, spec.width / 2 - 16, monitorH - 12, 32, 3, 1.5);
+  ctx.fill();
+
+  // Stand neck
+  const neckW = 52;
+  const neckX = (spec.width - neckW) / 2;
+  ctx.fillStyle = "#3a3a3c";
+  ctx.beginPath();
+  ctx.moveTo(neckX + neckW * 0.15, monitorH - 1);
+  ctx.lineTo(neckX + neckW * 0.85, monitorH - 1);
+  ctx.lineTo(neckX + neckW, monitorH + 47);
+  ctx.lineTo(neckX, monitorH + 47);
+  ctx.closePath();
+  ctx.fill();
+
+  // Stand base
+  const baseW = 180;
+  const baseX = (spec.width - baseW) / 2;
+  const baseY = spec.height - 14;
+  const baseGrad = ctx.createLinearGradient(0, baseY, 0, spec.height);
+  baseGrad.addColorStop(0, "#3a3a3c");
+  baseGrad.addColorStop(1, "#222224");
+  roundRect(ctx, baseX, baseY, baseW, 14, 4);
+  ctx.fillStyle = baseGrad;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.1)";
   ctx.lineWidth = 1;
   ctx.stroke();
 }
@@ -592,6 +658,8 @@ export function drawMockupFrame(
 
   if (spec.id === "desktop") {
     drawDesktopDevice(ctx, spec);
+  } else if (spec.id === "pc") {
+    drawPCDevice(ctx, spec);
   } else {
     drawDeviceBody(ctx, spec);
   }

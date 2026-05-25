@@ -37,7 +37,7 @@ export interface DeviceSpec {
   buttons: SideButtonSpec[];
   antennaBands?: AntennaBandSpec[];
   floorShadow: { opacity: number; offsetY: number; height: number; widthPct: number };
-  screenGlare: "iphone" | "iphone11" | "samsung-edges" | "pixel" | "ipad" | "desktop";
+  screenGlare: "iphone" | "iphone11" | "samsung-edges" | "pixel" | "ipad" | "desktop" | "pc";
   dynamicIsland?: { width: number; height: number; offsetTop: number };
   notch?: { width: number; height: number; bottomRadius: number };
   /** Écran non centré (ex. capot laptop) */
@@ -171,8 +171,8 @@ export const DEVICE_SPECS: Record<DeviceId, DeviceSpec> = {
   },
   desktop: {
     id: "desktop",
-    width: 500,
-    height: 312,
+    width: 540,
+    height: 420,
     frameRadius: 14,
     bezelInset: 0,
     screenInset: 0,
@@ -188,8 +188,30 @@ export const DEVICE_SPECS: Record<DeviceId, DeviceSpec> = {
     buttons: [],
     floorShadow: { opacity: 0.42, offsetY: 16, height: 14, widthPct: 0.88 },
     screenGlare: "desktop",
-    keyboardHeight: 74,
-    screenRect: { x: 11, y: 11, width: 478, height: 216, radius: 8 },
+    keyboardHeight: 68,
+    screenRect: { x: 14, y: 14, width: 512, height: 318, radius: 8 },
+  },
+  pc: {
+    id: "pc",
+    width: 540,
+    height: 448,
+    frameRadius: 8,
+    bezelInset: 0,
+    screenInset: 0,
+    screenRadius: 4,
+    frameGradient: {
+      type: "horizontal",
+      stops: ["#1a1a1c", "#2d2d30", "#1a1a1c"],
+    },
+    frameBorder: "rgba(255,255,255,0.08)",
+    innerEdgeBorder: "rgba(255,255,255,0.04)",
+    topShine: { startPct: 0.1, endPct: 0.5, opacity: 0.12 },
+    bezelInnerStroke: "rgba(255,255,255,0.06)",
+    buttons: [],
+    floorShadow: { opacity: 0.44, offsetY: 18, height: 16, widthPct: 0.75 },
+    screenGlare: "pc",
+    keyboardHeight: 96,
+    screenRect: { x: 10, y: 10, width: 520, height: 292, radius: 4 },
   },
 };
 

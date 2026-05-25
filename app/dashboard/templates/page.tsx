@@ -207,15 +207,23 @@ export default function TemplatesPage() {
         <div>
           <p className="text-sm font-semibold text-white mb-1">Démos web & SaaS</p>
           <p className="text-xs text-white/45">
-            Utilise le template MacBook Pro en paysage pour présenter ton app desktop ou dashboard.
+            MacBook Pro pour le mobile-first, PC Monitor pour les tutoriels Windows et apps web.
           </p>
         </div>
-        <Link
-          href="/dashboard/editor?template=desktop-saas"
-          className="inline-flex items-center justify-center gap-2 text-sm font-medium text-[#3B7BFF] hover:text-[#93c5fd] transition-colors shrink-0"
-        >
-          Essayer SaaS Desktop →
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+          <Link
+            href="/dashboard/editor?template=pc-windows"
+            className="inline-flex items-center justify-center gap-2 text-sm font-medium text-[#3B7BFF] hover:text-[#93c5fd] transition-colors"
+          >
+            PC Windows →
+          </Link>
+          <Link
+            href="/dashboard/editor?template=desktop-saas"
+            className="inline-flex items-center justify-center gap-2 text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
+          >
+            MacBook →
+          </Link>
+        </div>
       </div>
     </div>
   );

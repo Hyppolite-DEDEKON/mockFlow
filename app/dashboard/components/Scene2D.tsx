@@ -8,6 +8,7 @@ import CSSSamsung from "./devices/CSSSamsung";
 import CSSiPad from "./devices/CSSiPad";
 import CSSPixel from "./devices/CSSPixel";
 import CSSDesktop from "./devices/CSSDesktop";
+import CSSPC from "./devices/CSSPC";
 import {
   type AspectRatio,
   getFinalPose,
@@ -16,7 +17,7 @@ import {
 } from "../lib/motionPresets";
 import { isLightBackground, isColorBackground } from "../lib/backgrounds";
 
-export type DeviceId = "iphone15" | "iphone11" | "samsung" | "ipad" | "pixel" | "desktop";
+export type DeviceId = "iphone15" | "iphone11" | "samsung" | "ipad" | "pixel" | "desktop" | "pc";
 
 interface Scene2DProps {
   videoUrl: string | null;
@@ -38,6 +39,7 @@ const DEVICE_COMPONENTS: Record<DeviceId, typeof CSSiPhone> = {
   ipad: CSSiPad,
   pixel: CSSPixel,
   desktop: CSSDesktop,
+  pc: CSSPC,
 };
 
 function AmbientGlow({

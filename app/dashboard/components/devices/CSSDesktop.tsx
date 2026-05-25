@@ -13,7 +13,7 @@ interface DeviceProps {
 
 const S = DEVICE_SPECS.desktop;
 const screen = S.screenRect!;
-const LID_HEIGHT = S.height - (S.keyboardHeight ?? 74);
+const LID_HEIGHT = S.height - (S.keyboardHeight ?? 68);
 
 const CSSDesktop = forwardRef<HTMLDivElement, DeviceProps>(
   ({ videoUrl, className, videoTime, videoPlaying }, ref) => {
@@ -32,6 +32,9 @@ const CSSDesktop = forwardRef<HTMLDivElement, DeviceProps>(
             background: "linear-gradient(145deg, #e8ebf0 0%, #c2cad6 45%, #a3aec0 100%)",
           }}
         >
+          {/* Notch on aluminum — above screen, does not cover video */}
+          <div className="absolute top-[5px] left-1/2 -translate-x-1/2 w-[96px] h-[10px] bg-[#a3aec0] rounded-b-[5px] z-10 border border-white/20" />
+
           <div
             className="absolute bg-[#0a0a0c] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
             style={{
@@ -42,10 +45,6 @@ const CSSDesktop = forwardRef<HTMLDivElement, DeviceProps>(
               borderRadius: screen.radius + 2,
             }}
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[108px] h-[22px] bg-black rounded-b-[11px] z-20 flex items-end justify-center pb-[3px] border-x border-b border-white/5">
-              <div className="w-[6px] h-[6px] rounded-full bg-[#0d1117] border border-white/10" />
-            </div>
-
             <div
               className="absolute bg-[#06070a] overflow-hidden"
               style={{
@@ -57,11 +56,17 @@ const CSSDesktop = forwardRef<HTMLDivElement, DeviceProps>(
               }}
             >
               {videoUrl ? (
-                <SyncedVideo videoUrl={videoUrl} videoTime={videoTime} videoPlaying={videoPlaying} />
+                <SyncedVideo
+                  videoUrl={videoUrl}
+                  videoTime={videoTime}
+                  videoPlaying={videoPlaying}
+                  objectFit="contain"
+                  objectPosition="top"
+                />
               ) : (
                 <PlaceholderScreen variant="desktop" />
               )}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
         </div>
@@ -80,8 +85,8 @@ const CSSDesktop = forwardRef<HTMLDivElement, DeviceProps>(
             background: "linear-gradient(180deg, #b0b8c4 0%, #949eb0 55%, #8892a4 100%)",
           }}
         >
-          <div className="absolute top-[14px] left-1/2 -translate-x-1/2 w-[38%] h-[42px] rounded-lg bg-[#8e98a8]/50 border border-white/15 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2)]" />
-          <div className="absolute top-[8px] left-[8%] right-[8%] flex flex-col gap-[3px] opacity-25">
+          <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[38%] h-[38px] rounded-lg bg-[#8e98a8]/50 border border-white/15 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2)]" />
+          <div className="absolute top-[6px] left-[8%] right-[8%] flex flex-col gap-[3px] opacity-25">
             {[88, 80, 72].map((w) => (
               <div key={w} className="h-[3px] rounded-full bg-black/30 mx-auto" style={{ width: `${w}%` }} />
             ))}

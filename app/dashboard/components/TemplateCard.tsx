@@ -15,11 +15,13 @@ interface TemplateCardProps {
 }
 
 function MiniDevice({ device, light }: { device: string; light: boolean }) {
+  const isPC = device === "pc";
   const isDesktop = device === "desktop";
   const isIpad = device === "ipad";
-  const w = isDesktop ? 120 : isIpad ? 88 : 52;
-  const h = isDesktop ? 72 : isIpad ? 64 : 108;
-  const radius = isDesktop ? 6 : isIpad ? 8 : 14;
+  const isWide = isPC || isDesktop;
+  const w = isWide ? 120 : isIpad ? 88 : 52;
+  const h = isPC ? 88 : isDesktop ? 72 : isIpad ? 64 : 108;
+  const radius = isWide ? 4 : isIpad ? 8 : 14;
 
   return (
     <div
@@ -71,7 +73,7 @@ function MiniDevice({ device, light }: { device: string; light: boolean }) {
             ))}
           </div>
         </div>
-        {!isIpad && !isDesktop && (
+        {!isIpad && !isWide && (
           <div
             className="absolute z-10 left-1/2 -translate-x-1/2"
             style={{
@@ -84,6 +86,12 @@ function MiniDevice({ device, light }: { device: string; light: boolean }) {
           />
         )}
       </div>
+      {isPC && (
+        <div
+          className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 bg-[#3a3a3c] rounded-sm"
+          style={{ width: 28, height: 8 }}
+        />
+      )}
     </div>
   );
 }

@@ -269,8 +269,10 @@ export default function EditorPage() {
                     { id: "pixel", label: "Pixel 8 Pro", icon: Smartphone },
                     { id: "ipad", label: "iPad Mini", icon: Smartphone },
                     { id: "desktop", label: "MacBook Pro", icon: Monitor },
+                    { id: "pc", label: "PC Monitor", icon: Monitor },
                   ].map((d) => {
                     const Icon = d.icon;
+                    const isWide = d.id === "desktop" || d.id === "pc";
                     return (
                     <button
                       key={d.id}
@@ -282,7 +284,7 @@ export default function EditorPage() {
                         device === d.id
                           ? "bg-[#3B7BFF]/10 border-[#3B7BFF]/50 text-white"
                           : "bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/5"
-                      } ${d.id === "desktop" ? "col-span-2" : ""}`}
+                      } ${isWide ? "col-span-2" : ""}`}
                     >
                       <Icon size={14} className={device === d.id ? "text-[#3B7BFF]" : ""} />
                       {d.label}

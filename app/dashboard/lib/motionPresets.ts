@@ -39,7 +39,7 @@ export function getFinalScale(
       samsung: 1.02,
       pixel: 1.03,
       ipad: 0.82,
-      desktop: 0.48,
+      desktop: 0.56,
       pc: 0.46,
     },
     "16:9": {
@@ -48,7 +48,7 @@ export function getFinalScale(
       samsung: 0.66,
       pixel: 0.67,
       ipad: 0.58,
-      desktop: 0.78,
+      desktop: 0.82,
       pc: 0.76,
     },
     "1:1": {
@@ -57,7 +57,7 @@ export function getFinalScale(
       samsung: 0.8,
       pixel: 0.81,
       ipad: 0.68,
-      desktop: 0.54,
+      desktop: 0.64,
       pc: 0.52,
     },
   };

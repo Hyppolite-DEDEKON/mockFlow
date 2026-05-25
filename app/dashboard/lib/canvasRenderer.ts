@@ -8,6 +8,12 @@ import {
   type DeviceSpec,
   type SideButtonSpec,
 } from "./deviceSpecs";
+import {
+  bilinearInQuad,
+  getMacBookLayout,
+  quadPath,
+  type Point2D,
+} from "./macbookGeometry";
 
 export type { DeviceSpec };
 export { DEVICE_SPECS, getScreenRect };
@@ -498,59 +504,186 @@ function drawFloorShadow(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
   ctx.restore();
 }
 
-function drawDesktopDevice(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
-  const lidH = spec.height - (spec.keyboardHeight ?? 74);
-  const r = spec.frameRadius;
-  const screen = getScreenRect(spec);
-
-  roundRect(ctx, 0, 0, spec.width, lidH, r);
-  ctx.fillStyle = createFrameGradient(ctx, spec);
+function fillQuad(
+  ctx: CanvasRenderingContext2D,
+  quad: [Point2D, Point2D, Point2D, Point2D],
+  fill: string | CanvasGradient
+) {
+  quadPath(ctx, quad);
+  ctx.fillStyle = fill;
   ctx.fill();
-  ctx.strokeStyle = spec.frameBorder;
+}
+
+function drawImageInQuad(
+  ctx: CanvasRenderingContext2D,
+  source: HTMLVideoElement,
+  quad: [Point2D, Point2D, Point2D, Point2D]
+) {
+  const iw = source.videoWidth;
+  const ih = source.videoHeight;
+  if (!iw || !ih) return;
+
+  const strips = 36;
+  ctx.save();
+  quadPath(ctx, quad);
+  ctx.clip();
+
+  for (let i = 0; i < strips; i++) {
+    const v0 = i / strips;
+    const v1 = (i + 1) / strips;
+    const tl = bilinearInQuad(quad, 0, v0);
+    const tr = bilinearInQuad(quad, 1, v0);
+    const bl = bilinearInQuad(quad, 0, v1);
+    const br = bilinearInQuad(quad, 1, v1);
+
+    const minX = Math.min(tl.x, tr.x, bl.x, br.x);
+    const maxX = Math.max(tl.x, tr.x, bl.x, br.x);
+    const minY = Math.min(tl.y, tr.y, bl.y, br.y);
+    const maxY = Math.max(tl.y, tr.y, bl.y, br.y);
+
+    ctx.drawImage(source, 0, v0 * ih, iw, ih / strips, minX, minY, maxX - minX, maxY - minY);
+  }
+
+  ctx.restore();
+}
+
+function drawMacBookKeyboardPerspective(
+  ctx: CanvasRenderingContext2D,
+  kbQuad: [Point2D, Point2D, Point2D, Point2D]
+) {
+  const rows = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1.4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.4],
+    [1.2, 1, 1, 1, 4.5, 1, 1, 1, 1.2],
+  ];
+
+  const uPad = 0.06;
+  const vKey0 = 0.07;
+  const vKey1 = 0.5;
+  const gap = 0.006;
+
+  rows.forEach((flexes, rowIdx) => {
+    const v0 = vKey0 + ((vKey1 - vKey0) * rowIdx) / rows.length + gap;
+    const v1 = vKey0 + ((vKey1 - vKey0) * (rowIdx + 1)) / rows.length - gap;
+    const totalFlex = flexes.reduce((a, b) => a + b, 0);
+    let u = uPad;
+
+    flexes.forEach((flex) => {
+      const u1 = u + ((1 - uPad * 2) * flex) / totalFlex - gap;
+      const keyQuad: [Point2D, Point2D, Point2D, Point2D] = [
+        bilinearInQuad(kbQuad, u, v0),
+        bilinearInQuad(kbQuad, u1, v0),
+        bilinearInQuad(kbQuad, u1, v1),
+        bilinearInQuad(kbQuad, u, v1),
+      ];
+      quadPath(ctx, keyQuad);
+      const cx = (keyQuad[0].x + keyQuad[2].x) / 2;
+      const cy = (keyQuad[0].y + keyQuad[2].y) / 2;
+      const g = ctx.createLinearGradient(cx, cy - 4, cx, cy + 4);
+      g.addColorStop(0, "#2a2a2c");
+      g.addColorStop(1, "#1a1a1c");
+      ctx.fillStyle = g;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.45)";
+      ctx.lineWidth = 0.4;
+      ctx.stroke();
+      u = u1 + gap;
+    });
+  });
+
+  const tpQuad: [Point2D, Point2D, Point2D, Point2D] = [
+    bilinearInQuad(kbQuad, 0.28, 0.58),
+    bilinearInQuad(kbQuad, 0.72, 0.58),
+    bilinearInQuad(kbQuad, 0.72, 0.9),
+    bilinearInQuad(kbQuad, 0.28, 0.9),
+  ];
+  quadPath(ctx, tpQuad);
+  const tcx = (tpQuad[0].x + tpQuad[2].x) / 2;
+  const tcy = (tpQuad[0].y + tpQuad[2].y) / 2;
+  const tpGrad = ctx.createLinearGradient(tcx - 40, tcy - 20, tcx + 40, tcy + 20);
+  tpGrad.addColorStop(0, "rgba(255,255,255,0.22)");
+  tpGrad.addColorStop(0.5, "rgba(180,188,200,0.35)");
+  tpGrad.addColorStop(1, "rgba(140,150,165,0.45)");
+  ctx.fillStyle = tpGrad;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.28)";
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+}
+
+function drawDesktopDevice(
+  ctx: CanvasRenderingContext2D,
+  spec: DeviceSpec,
+  video: HTMLVideoElement | null
+) {
+  const layout = getMacBookLayout(spec);
+  const { screenQuad, keyboardQuad, videoQuad, hingeY } = layout;
+
+  // Capot aluminium
+  const lidGrad = ctx.createLinearGradient(screenQuad[0].x, screenQuad[0].y, screenQuad[3].x, screenQuad[3].y);
+  lidGrad.addColorStop(0, "#e8ebf0");
+  lidGrad.addColorStop(0.5, "#c2cad6");
+  lidGrad.addColorStop(1, "#a3aec0");
+  fillQuad(ctx, screenQuad, lidGrad);
+  ctx.strokeStyle = "rgba(255,255,255,0.3)";
   ctx.lineWidth = 1;
+  quadPath(ctx, screenQuad);
   ctx.stroke();
 
+  // Bezel écran
+  const bezelQuad: [Point2D, Point2D, Point2D, Point2D] = [
+    bilinearInQuad(screenQuad, 0.02, 0.02),
+    bilinearInQuad(screenQuad, 0.98, 0.02),
+    bilinearInQuad(screenQuad, 0.98, 0.98),
+    bilinearInQuad(screenQuad, 0.02, 0.98),
+  ];
+  fillQuad(ctx, bezelQuad, "#0a0a0c");
+
+  // Vidéo
+  if (video && video.readyState >= 2) {
+    drawImageInQuad(ctx, video, videoQuad);
+  } else {
+    fillQuad(ctx, videoQuad, "#06070a");
+    const grad = ctx.createLinearGradient(videoQuad[0].x, videoQuad[0].y, videoQuad[3].x, videoQuad[3].y);
+    grad.addColorStop(0, "#1e1b4b");
+    grad.addColorStop(1, "#1e3a8a");
+    fillQuad(ctx, videoQuad, grad);
+  }
+
+  // Reflet écran
   ctx.save();
-  roundRect(ctx, 0, 0, spec.width, lidH, r);
+  quadPath(ctx, videoQuad);
   ctx.clip();
-  drawTopShine(ctx, spec);
+  const glare = ctx.createLinearGradient(
+    videoQuad[0].x,
+    videoQuad[0].y,
+    videoQuad[2].x,
+    videoQuad[2].y
+  );
+  glare.addColorStop(0, "rgba(255,255,255,0.06)");
+  glare.addColorStop(0.4, "transparent");
+  ctx.fillStyle = glare;
+  ctx.fillRect(videoQuad[0].x, videoQuad[0].y, spec.width, spec.height);
   ctx.restore();
 
-  // Small notch on aluminum (above screen)
-  const notchW = 96;
-  const notchX = (spec.width - notchW) / 2;
-  roundRect(ctx, notchX, 5, notchW, 10, 5);
-  ctx.fillStyle = "#a3aec0";
-  ctx.fill();
+  // Charnière
+  ctx.fillStyle = "#4b5563";
+  ctx.fillRect(spec.width * 0.06, hingeY - 1, spec.width * 0.88, 3);
+
+  // Plateau clavier
+  const kbGrad = ctx.createLinearGradient(keyboardQuad[3].x, keyboardQuad[3].y, keyboardQuad[0].x, keyboardQuad[0].y);
+  kbGrad.addColorStop(0, "#c8ced8");
+  kbGrad.addColorStop(0.5, "#a8b0bc");
+  kbGrad.addColorStop(1, "#949eb0");
+  fillQuad(ctx, keyboardQuad, kbGrad);
   ctx.strokeStyle = "rgba(255,255,255,0.2)";
   ctx.lineWidth = 1;
+  quadPath(ctx, keyboardQuad);
   ctx.stroke();
 
-  const baseGrad = ctx.createLinearGradient(0, lidH, 0, spec.height);
-  baseGrad.addColorStop(0, "#b0b8c4");
-  baseGrad.addColorStop(0.55, "#949eb0");
-  baseGrad.addColorStop(1, "#8892a4");
-  roundRect(ctx, 0, lidH - 1, spec.width, spec.height - lidH + 1, r);
-  ctx.fillStyle = baseGrad;
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.2)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  ctx.fillStyle = "#5b6370";
-  ctx.fillRect(spec.width * 0.06, lidH - 1, spec.width * 0.88, 3);
-
-  roundRect(ctx, screen.x - 2, screen.y - 2, screen.width + 4, screen.height + 4, screen.radius + 2);
-  ctx.fillStyle = "#0a0a0c";
-  ctx.fill();
-
-  const tpW = spec.width * 0.38;
-  roundRect(ctx, (spec.width - tpW) / 2, lidH + 14, tpW, 42, 8);
-  ctx.fillStyle = "rgba(142,152,168,0.45)";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.15)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  drawMacBookKeyboardPerspective(ctx, keyboardQuad);
 }
 
 function drawPCDevice(ctx: CanvasRenderingContext2D, spec: DeviceSpec) {
@@ -657,15 +790,18 @@ export function drawMockupFrame(
   ctx.translate(-spec.width / 2, -spec.height / 2);
 
   if (spec.id === "desktop") {
-    drawDesktopDevice(ctx, spec);
+    drawDesktopDevice(ctx, spec, video);
   } else if (spec.id === "pc") {
     drawPCDevice(ctx, spec);
+    drawVideoInScreen(ctx, spec, video);
+    drawScreenGlare(ctx, spec);
+    drawDeviceOverlays(ctx, spec);
   } else {
     drawDeviceBody(ctx, spec);
+    drawVideoInScreen(ctx, spec, video);
+    drawScreenGlare(ctx, spec);
+    drawDeviceOverlays(ctx, spec);
   }
-  drawVideoInScreen(ctx, spec, video);
-  drawScreenGlare(ctx, spec);
-  drawDeviceOverlays(ctx, spec);
 
   ctx.restore();
   ctx.restore();

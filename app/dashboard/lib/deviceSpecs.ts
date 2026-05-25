@@ -172,7 +172,7 @@ export const DEVICE_SPECS: Record<DeviceId, DeviceSpec> = {
   desktop: {
     id: "desktop",
     width: 540,
-    height: 420,
+    height: 480,
     frameRadius: 14,
     bezelInset: 0,
     screenInset: 0,
@@ -188,8 +188,8 @@ export const DEVICE_SPECS: Record<DeviceId, DeviceSpec> = {
     buttons: [],
     floorShadow: { opacity: 0.42, offsetY: 16, height: 14, widthPct: 0.88 },
     screenGlare: "desktop",
-    keyboardHeight: 68,
-    screenRect: { x: 14, y: 14, width: 512, height: 318, radius: 8 },
+    keyboardHeight: 128,
+    screenRect: { x: 14, y: 14, width: 512, height: 310, radius: 8 },
   },
   pc: {
     id: "pc",

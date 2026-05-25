@@ -496,8 +496,10 @@ export default function EditorPage() {
             }}
           >
             <div
-              className="absolute left-0 top-0 bottom-0 bg-[#3B7BFF] rounded-full transition-all"
-              style={{ width: `${(playhead / totalDuration) * 100}%` }}
+              className={`absolute left-0 top-0 bottom-0 bg-[#3B7BFF] rounded-full ${
+                isPlaying ? "" : "transition-[width] duration-150"
+              }`}
+              style={{ width: `${totalDuration > 0 ? (playhead / totalDuration) * 100 : 0}%` }}
             />
             {introDuration > 0 && (
               <div

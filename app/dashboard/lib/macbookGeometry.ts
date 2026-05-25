@@ -1,11 +1,11 @@
 import type { DeviceSpec } from "./deviceSpecs";
 
 /** Inclinaison de l'écran vers l'arrière (depuis face caméra) — léger */
-export const MACBOOK_LID_OPEN_DEG = 14;
+export const MACBOOK_LID_OPEN_DEG = 11;
 /** Inclinaison du plateau clavier vers la caméra (charnière en haut) */
-export const MACBOOK_KEYBOARD_TILT_DEG = 56;
+export const MACBOOK_KEYBOARD_TILT_DEG = 50;
 /** Vue globale légèrement plongeante */
-export const MACBOOK_VIEW_TILT_DEG = 10;
+export const MACBOOK_VIEW_TILT_DEG = 12;
 
 export interface Point2D {
   x: number;

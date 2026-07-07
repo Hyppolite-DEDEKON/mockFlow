@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { Play } from "lucide-react";
+import { usePlaybackVideoRef } from "../PlaybackVideoContext";
 
 interface SyncedVideoProps {
   videoUrl: string;
@@ -14,30 +15,49 @@ interface SyncedVideoProps {
 export default function SyncedVideo({
   videoUrl,
   videoTime,
-  videoPlaying,
+  videoPlaying = false,
   objectFit = "cover",
   objectPosition = "center",
 }: SyncedVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const playbackVideoRef = usePlaybackVideoRef();
 
   useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid || videoTime === undefined) return;
-    if (Math.abs(vid.currentTime - videoTime) > 0.15) {
-      vid.currentTime = videoTime;
+    const display = videoRef.current;
+    if (!display) return;
+
+    if (videoPlaying && playbackVideoRef?.current) {
+      let raf = 0;
+      const sync = () => {
+        const master = playbackVideoRef.current;
+        if (master && display) {
+          if (Math.abs(display.currentTime - master.currentTime) > 0.05) {
+            display.currentTime = master.currentTime;
+          }
+        }
+        raf = requestAnimationFrame(sync);
+      };
+      raf = requestAnimationFrame(sync);
+      return () => cancelAnimationFrame(raf);
     }
+
+    if (!videoPlaying && videoTime !== undefined) {
+      display.currentTime = videoTime;
+    }
+  }, [videoPlaying, videoTime, playbackVideoRef]);
+
+  useEffect(() => {
+    const display = videoRef.current;
+    if (!display) return;
     if (videoPlaying) {
-      vid.play().catch(() => {});
-    } else {
-      vid.pause();
+      display.pause();
     }
-  }, [videoTime, videoPlaying]);
+  }, [videoPlaying]);
 
   return (
     <video
       ref={videoRef}
       src={videoUrl}
-      loop
       muted
       playsInline
       preload="auto"

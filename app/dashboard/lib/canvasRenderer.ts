@@ -769,8 +769,12 @@ export function drawMockupFrame(
     videoTime: number;
   }
 ) {
-  const { width, height, deviceId, pose, backgroundId, video } = options;
+  const { width, height, deviceId, pose, backgroundId, video, videoTime } = options;
   const spec = DEVICE_SPECS[deviceId];
+
+  if (video && Number.isFinite(videoTime) && Math.abs(video.currentTime - videoTime) > 0.04) {
+    video.currentTime = videoTime;
+  }
 
   drawBackground(ctx, backgroundId, width, height);
 
